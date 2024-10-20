@@ -512,7 +512,6 @@ class coinone(Exchange, ImplicitAPI):
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.coinone.co.kr/v1.0/reference/ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -740,10 +739,10 @@ class coinone(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request: dict = {
             'price': price,
-            'currency': market['id'],
+            'currency': market['base'],
             'qty': amount,
         }
-        method = 'privatePostOrder' + self.capitalize(type) + self.capitalize(side)
+        method = 'v2PrivatePostOrder' + self.capitalize(type) + self.capitalize(side)
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -926,9 +925,9 @@ class coinone(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'currency': market['id'],
+            'currency': market['base'],
         }
-        response = self.privatePostOrderLimitOrders(self.extend(request, params))
+        response = self.v2PrivatePostOrderLimitOrders(self.extend(request, params))
         #
         #     {
         #         "result": "success",
@@ -962,10 +961,12 @@ class coinone(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
+
         request: dict = {
-            'currency': market['id'],
+            'currency': market['base'],
         }
         response = self.v2PrivatePostOrderCompleteOrders(self.extend(request, params))
+
         #
         # despite the name of the endpoint it returns trades which may have a duplicate orderId
         # https://github.com/ccxt/ccxt/pull/7067
