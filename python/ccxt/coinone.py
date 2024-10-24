@@ -767,7 +767,7 @@ class coinone(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request: dict = {
             'order_id': id,
-            'currency': market['id'],
+            'currency': market['base'],
         }
         response = self.v2PrivatePostOrderQueryOrder(self.extend(request, params))
         #

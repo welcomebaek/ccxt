@@ -736,14 +736,16 @@ class coinone(Exchange, ImplicitAPI):
         """
         if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
+
         await self.load_markets()
         market = self.market(symbol)
+
         request: dict = {
             'price': price,
-            'currency': market['id'],
+            'currency': market['base'],
             'qty': amount,
         }
-        method = 'privatePostOrder' + self.capitalize(type) + self.capitalize(side)
+        method = 'v2PrivatePostOrder' + self.capitalize(type) + self.capitalize(side)
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
