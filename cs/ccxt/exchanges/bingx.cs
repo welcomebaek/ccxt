@@ -90,7 +90,7 @@ public partial class bingx : Exchange
             } },
             { "hostname", "bingx.com" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/c5249c7b-03c7-47ad-96b6-3819b0ebd3be" },
                 { "api", new Dictionary<string, object>() {
                     { "spot", "https://open-api.{hostname}/openApi" },
                     { "swap", "https://open-api.{hostname}/openApi" },
@@ -197,6 +197,7 @@ public partial class bingx : Exchange
                                 { "market/markPriceKlines", 1 },
                                 { "trade/batchCancelReplace", 5 },
                                 { "trade/fullOrder", 2 },
+                                { "positionMargin/history", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "trade/cancelReplace", 2 },
@@ -2841,6 +2842,7 @@ public partial class bingx : Exchange
         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2878,6 +2880,11 @@ public partial class bingx : Exchange
             response = await this.swapV2PrivatePostTradeBatchOrders(request);
         } else
         {
+            object sync = this.safeBool(parameters, "sync", false);
+            if (isTrue(sync))
+            {
+                ((IDictionary<string,object>)request)["sync"] = true;
+            }
             ((IDictionary<string,object>)request)["data"] = this.json(ordersRequests);
             response = await this.spotV1PrivatePostTradeBatchOrders(request);
         }
@@ -3351,7 +3358,7 @@ public partial class bingx : Exchange
                 { "cost", Precise.stringAbs(feeCost) },
             } },
             { "trades", null },
-            { "reduceOnly", this.safeBool(order, "reduceOnly") },
+            { "reduceOnly", this.safeBool2(order, "reduceOnly", "ro") },
         }, market);
     }
 
