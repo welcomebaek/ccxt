@@ -1026,12 +1026,13 @@ class coinone(Exchange, ImplicitAPI):
             # eslint-disable-next-line quotes
             raise ArgumentsRequired(self.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")
         await self.load_markets()
+        market = self.market(symbol)
         request: dict = {
             'order_id': id,
             'price': price,
             'qty': qty,
             'is_ask': isAsk,
-            'currency': self.market_id(symbol),
+            'currency': market['base'],
         }
         response = await self.v2PrivatePostOrderCancel(self.extend(request, params))
         #
