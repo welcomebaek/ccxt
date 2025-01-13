@@ -17,6 +17,7 @@ from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
+import time
 
 class coinone(Exchange, ImplicitAPI):
 
@@ -1126,3 +1127,19 @@ class coinone(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None
+    
+    def get_candle_chart(self, symbol: str, interval: str, size: int = 200, timestamp:int = None):
+        valid_intervals= ('1m', '3m', '5m', '10m', '15m', '30m', '1h', '2h', '4h', '6h', '1d', '1w', '1mon')
+        if interval not in valid_intervals:
+            feedback = 'invalid interavls'
+            raise ExchangeError(feedback)
+        if timestamp is None:
+            timestamp=round(time.time()*1000)
+        self.load_markets()
+        market = self.market(symbol)        
+        request: dict = {
+            'quote_currency': market['quote'],
+            'target_currency': market['base'],
+        }
+        response = self.v2PublicGetChartQuoteCurrencyTargetCurrency(self.extend(request, {'interval':interval, 'size': size, 'timestamp': timestamp}))        
+        return response['chart']
